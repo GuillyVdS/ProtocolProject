@@ -1,22 +1,11 @@
 """Script taking input from user"""
 
-"""Importing the serial library to communicate over sockets, the time library
-is used to add time delays"""
-
 import serial
 import time
 
 MAX_USER_INPUT_BUFFER_LENGTH = 512
 SOCKET_PORT = 'port-two'
 BAUDRATE = 9600
-
-"""Initialising a serial port object and setting the correct BAUD rate."""
-
-ser = serial.Serial(
-    port=SOCKET_PORT,
-    baudrate=BAUDRATE
-)
-
 
 def check_for_input():
     """ Will take user input, checks if input does not exceed 512 characters
@@ -31,27 +20,38 @@ def check_for_input():
         else:
             print("Current input exceeds maximum allowed characters.")
 
-def send_data_over_serial(data_to_send):
+def send_data_over_serial(serial_port: serial.Serial, data_to_send: str):
     """ This function takes input from the buffer in main, converts this to
     utf-8. The serial port is opened and the converted data will
     be written to it.
     """
 
-    data_as_bytes = bytes(data_to_send, 'utf-8')
-    ser.close()
-    ser.open()
-    ser.write(data_as_bytes)
-    time.sleep(3)
-    print("Message has been sent")
-
-
+    data_as_bytes = bytes(data_to_send, 'ascii')
+    serial_port.write(data_as_bytes)
 
 def main():
-    """Executes an infinite loop, to continiously execute below functions"""
+    """Initialising a serial port object and setting the correct BAUD rate."""
+    try:
+        serial_port_object = serial.Serial(
+            port=SOCKET_PORT,
+            baudrate=BAUDRATE
+        )
 
-    while True:
-        main_buffer = check_for_input()
-        send_data_over_serial(main_buffer)
+        while True:    #Executes an infinite loop, to repeat below functions
+            main_buffer = check_for_input()
+            send_data_over_serial(serial_port_object, main_buffer)
+
+    except serial.SerialException as e:
+        print("Error configuring Serial port")
+        print(e)
+    except Exception as e:
+        print("Failed to perform action")
+    #except KeyBoardInterrupt:
+        serial_port.close()
+        quit()
+
+
+
 
 
 if __name__ == "__main__":
