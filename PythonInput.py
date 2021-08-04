@@ -40,8 +40,7 @@ def receive_data_over_serial( serial_port_receive: serial.Serial ) -> str:
     return data_received.decode( 'ascii' )
 
 def main():
-    """Initialising a serial port object and setting the correct BAUD rate."""
-
+    
     try:
         serial_port_object = serial.Serial(
             port=SOCKET_PORT,
