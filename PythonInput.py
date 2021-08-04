@@ -34,7 +34,7 @@ def receive_data_over_serial( serial_port_receive: serial.Serial ) -> str:
     socket (in the form of bytes) and returns a decoded string.
     """
 
-    while (data_received := serial_port_receive.read(512) ) ==  b'':
+    while ( data_received := serial_port_receive.read(512) ) ==  b'':
         print( "timed out with no bytes" )
         pass
     return data_received.decode( 'ascii' )
