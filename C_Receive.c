@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <fcntl.h> // Contains file controls like O_RDWR
 #include <errno.h> // Error integer and strerror() function
 #include <unistd.h> // write(), read(), close()
@@ -23,10 +24,9 @@ void ListenForMessage( int fileDescriptor, char * buffer ){
 }
 
 int main(){
-
     char CharBuffer[BUFFERSIZE] = {0}; 
     int FileToRead = open( SOCKET_PORT, O_RDONLY );
-    while ( 1 ){ 
-      ListenForMessage(FileToRead, CharBuffer);
+    while ( true ){ 
+      ListenForMessage(FileToRead, CharBuffer);      
     }
 }
