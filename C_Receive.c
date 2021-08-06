@@ -7,34 +7,26 @@
 
 #include <stdio.h>
 #include <string.h>
-
-// Linux headers needed for serial receive
 #include <fcntl.h> // Contains file controls like O_RDWR
 #include <errno.h> // Error integer and strerror() function
 #include <unistd.h> // write(), read(), close()
 
-
 #define BUFFERSIZE 512
 #define SOCKET_PORT "port-one"
 
-void ListenForMessage(int Socket, char * buffer)
-{
-  read( Socket, buffer, BUFFERSIZE );
+void ListenForMessage( int fileDescriptor, char * buffer ){
+  read( fileDescriptor, buffer, BUFFERSIZE );
   buffer[strcspn( buffer, "\n" )] = 0;
   printf( "Incoming:  %s\n", buffer );
   fflush( stdout );  
   memset( buffer, 0, BUFFERSIZE );
-
 }
 
 int main(){
 
     char CharBuffer[BUFFERSIZE] = {0}; 
     int FileToRead = open( SOCKET_PORT, O_RDONLY );
-    while ( 1 )
-    { 
-
+    while ( 1 ){ 
       ListenForMessage(FileToRead, CharBuffer);
-
     }
 }
