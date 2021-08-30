@@ -9,17 +9,17 @@
 
 #define BUFFERSIZE 512
 #define SOCKET_PORT "port-one"
-#define DESTINATION_FILE "port-one"
+#define TEXT_FILE "inputfile.txt"
 
-/*Takes a char pointer as input. The function creates a filepointer object, opens
-the DESTINATION_FILE in append mode and stores this into the filepointer. The
+/*Takes a char pointer and destination file as input. The function creates a filepointer object, opens
+the destination_file in append mode and stores this into the filepointer. The
 function also checks whether a file pointer was succesfully created through use
 of an if statement. fprintf will store the contents of the char pointer into the
 file.*/
 
-void writeToFile(char * textinput){
-  FILE *fileptr = fopen(DESTINATION_FILE, "a");
-  if(fileptr == NULL)
+void writeToFile(const char * destination_file, char * textinput ){
+  FILE *fileptr = fopen( destination_file, "a" );
+  if( fileptr == NULL )
   {
     printf( "File-Error %s\n", strerror( errno ));
     exit( 1 );
@@ -41,14 +41,18 @@ void ListenForMessage( int fileDescriptor, char * buffer ){
   buffer[strcspn( buffer, "\n" )] = 0;
   printf( "Incoming:  %s\n", buffer );
   fflush( stdout );
-  writeToFile( buffer );
+  int testvar = write(fileDescriptor, buffer, strlen(buffer));
+  if( testvar == -1 ){
+      printf( "File-Error %s\n", strerror( errno ));
+  }
+  writeToFile( TEXT_FILE, buffer );
   memset( buffer, 0, BUFFERSIZE );
 }
 
 
 int main(){
     char CharBuffer[BUFFERSIZE] = {0};
-    int FileToRead = open( SOCKET_PORT, O_RDONLY );
+    int FileToRead = open( SOCKET_PORT, O_RDWR );
     if( FileToRead == -1 )
     {
       printf( "Socket-Error %s\n ", strerror( errno ) );

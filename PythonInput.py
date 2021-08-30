@@ -2,6 +2,8 @@
 
 import serial
 import time
+import sys
+from termios import TCIFLUSH, tcflush
 
 MAX_USER_INPUT_BUFFER_LENGTH = 512
 SOCKET_PORT = "port-two"
@@ -17,10 +19,11 @@ def check_for_input():
 
     while True:
         input_buffer = input("Please enter input here: ")
-        if len(input_buffer) <= MAX_USER_INPUT_BUFFER_LENGTH:
+        if len(input_buffer) >= 1 and len(input_buffer) <= MAX_USER_INPUT_BUFFER_LENGTH:
+            print("returning input buffer: \n")
             return input_buffer
         else:
-            print("Current input exceeds maximum allowed characters.")
+            print("Current input should be at least 1 character and should not exceed maximum allowed characters.")
 
 
 def send_data_over_serial(serial_port: serial.Serial, data_to_send: str):
@@ -28,7 +31,7 @@ def send_data_over_serial(serial_port: serial.Serial, data_to_send: str):
     utf-8. The serial port is opened and the converted data will
     be written to it.
     """
-
+    print("sending data: \n")
     serial_port.write(bytes(data_to_send, "ascii"))
 
 
@@ -51,6 +54,7 @@ def main():
         )
 
         while True:  # Executes an infinite loop, to repeat below functions
+            tcflush(sys.stdin, TCIFLUSH)
             main_buffer = check_for_input()
             send_data_over_serial(serial_port_object, main_buffer)
             print(receive_data_over_serial(serial_port_object))
