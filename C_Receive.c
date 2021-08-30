@@ -9,7 +9,7 @@
 
 #define BUFFERSIZE 512
 #define SOCKET_PORT "port-one"
-#define DESTINATION_FILE "inputfile.txt"
+#define DESTINATION_FILE "port-one"
 
 /*Takes a char pointer as input. The function creates a filepointer object, opens
 the DESTINATION_FILE in append mode and stores this into the filepointer. The
@@ -19,14 +19,13 @@ file.*/
 
 void writeToFile(char * textinput){
   FILE *fileptr = fopen(DESTINATION_FILE, "a");
-  //printf(" %s\n", strerror(errno));
   if(fileptr == NULL)
   {
-    printf("File-Error %s\n", strerror(errno));
-    exit(1);
+    printf( "File-Error %s\n", strerror( errno ));
+    exit( 1 );
   }
-  fprintf(fileptr, "\n%s", textinput );
-  fclose(fileptr);
+  fprintf( fileptr, "\n%s", textinput );
+  fclose( fileptr );
 }
 
 /*Takes a file descriptor for a socket and reads up to the count of BUFFERSIZE,
@@ -42,7 +41,7 @@ void ListenForMessage( int fileDescriptor, char * buffer ){
   buffer[strcspn( buffer, "\n" )] = 0;
   printf( "Incoming:  %s\n", buffer );
   fflush( stdout );
-  writeToFile(buffer);
+  writeToFile( buffer );
   memset( buffer, 0, BUFFERSIZE );
 }
 
@@ -50,12 +49,12 @@ void ListenForMessage( int fileDescriptor, char * buffer ){
 int main(){
     char CharBuffer[BUFFERSIZE] = {0};
     int FileToRead = open( SOCKET_PORT, O_RDONLY );
-    if(FileToRead == NULL)
+    if( FileToRead == -1 )
     {
-      printf("Socket-Error %s\n", strerror(errno));
+      printf( "Socket-Error %s\n ", strerror( errno ) );
       exit(1);
     }
     while ( true ){
-      ListenForMessage(FileToRead, CharBuffer);
+      ListenForMessage( FileToRead, CharBuffer );
     }
 }
