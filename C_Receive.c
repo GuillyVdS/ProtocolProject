@@ -1,9 +1,3 @@
-/*
-    -Create an application in C, that will forever run.
-    -This application should be able to receive messages from the COM/Serial/virtualSOCAT port,
-    print it to the command line, then return back to waiting for information to come across the port.
-    -This can be tested using "echo"
-*/
 
 #include <stdio.h>
 #include <string.h>
@@ -17,13 +11,18 @@
 #define SOCKET_PORT "port-one"
 #define DESTINATION_FILE "inputfile.txt"
 
-/*Takes */
+/*Takes a char pointer as input. The function creates a filepointer object, opens
+the DESTINATION_FILE in append mode and stores this into the filepointer. The
+function also checks whether a file pointer was succesfully created through use
+of an if statement. fprintf will store the contents of the char pointer into the
+file.*/
+
 void writeToFile(char * textinput){
   FILE *fileptr = fopen(DESTINATION_FILE, "a");
-  printf(" %s\n", strerror(errno));
+  //printf(" %s\n", strerror(errno));
   if(fileptr == NULL)
   {
-    printf("File-Error");
+    printf("File-Error %s\n", strerror(errno));
     exit(1);
   }
   fprintf(fileptr, "\n%s", textinput );
@@ -31,25 +30,31 @@ void writeToFile(char * textinput){
 }
 
 /*Takes a file descriptor for a socket and reads up to the count of BUFFERSIZE,
-storing this into the buffer.
-
+storing this into the buffer. strcspn is used to find the newline inside
+the buffer and remove it. fflush is used to force the output to print as the
+while loop has a tendency to block printf from working.
+Finally the contents of the buffer get written into a text file and
+the memset clears the buffer for the next use of this function.
 */
 
 void ListenForMessage( int fileDescriptor, char * buffer ){
-  read( fileDescriptor, buffer, BUFFERSIZE );
+  read( fileDescriptor, buffer, BUFFERSIZE ); //
   buffer[strcspn( buffer, "\n" )] = 0;
   printf( "Incoming:  %s\n", buffer );
-  fflush( stdout ); /* Prints what's in the buffer as the while loop sometimes 
-  skips print statements. */
-  writeToFile(buffer);             //Writes contents of the buffer into a file.
-  memset( buffer, 0, BUFFERSIZE ); //Clears the buffer for the next operation
+  fflush( stdout );
+  writeToFile(buffer);
+  memset( buffer, 0, BUFFERSIZE );
 }
 
-/**/
 
 int main(){
     char CharBuffer[BUFFERSIZE] = {0};
     int FileToRead = open( SOCKET_PORT, O_RDONLY );
+    if(FileToRead == NULL)
+    {
+      printf("Socket-Error %s\n", strerror(errno));
+      exit(1);
+    }
     while ( true ){
       ListenForMessage(FileToRead, CharBuffer);
     }
