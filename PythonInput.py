@@ -23,7 +23,9 @@ def check_for_input():
             print("returning input buffer: \n")
             return input_buffer
         else:
-            print("Current input should be at least 1 character and should not exceed maximum allowed characters.")
+            print(
+                "Current input should be at least 1 character and should not exceed maximum allowed characters."
+            )
 
 
 def send_data_over_serial(serial_port: serial.Serial, data_to_send: str):
