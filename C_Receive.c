@@ -35,9 +35,19 @@ void writeToFile(const char* destination_file, char* textinput)
 
 void Encode_Message( char * buffer, int sizeOfBuffer )
 {
+  char Payload_Length = (char)sizeOfBuffer;
+  printf(" TEST%c\n",  Payload_Length);
   char Encoded_Message[1000] = {0};
-  char * ptr_Encoded_Message = Encoded_Message;
+  char * ptr_Encoded_Message = Encoded_Message; //creates ptr to Encoded_Message
+  int FileToRead = open(SOCKET_PORT, O_RDWR);
 
+
+  *ptr_Encoded_Message++ = STX; //sets start byte
+  *ptr_Encoded_Message++ = '0';
+
+
+  /*while loop executes as long as index sizeOfBuffer is above 0. This will be
+  decremented on each loop.*/
   while( sizeOfBuffer )
   {
 
@@ -45,14 +55,14 @@ void Encode_Message( char * buffer, int sizeOfBuffer )
     {
       *ptr_Encoded_Message = EXE;
       ptr_Encoded_Message++;
-      printf("HERE2");
+      Payload_Length++;
     }
     else if( *buffer == ETX)
     {
       printf("\nHERE\n");
       *ptr_Encoded_Message = EXE;
       ptr_Encoded_Message++;
-
+      Payload_Length++;
 
     }
     *ptr_Encoded_Message = *buffer;
@@ -65,13 +75,11 @@ void Encode_Message( char * buffer, int sizeOfBuffer )
 
     fflush( stdout );
   }
-  //printf("\ntest print: %s ", Encoded_Message);
-  ptr_Encoded_Message++;
+  //ptr_Encoded_Message++;
   *ptr_Encoded_Message = ETX;
-  //printf("\ntest print: %s ", Encoded_Message);
-  //printf("%02X ", *Encoded_Message);
-  writeToFile(SOCKET_PORT, Encoded_Message);
 
+  write( FileToRead, Encoded_Message, sizeof( Encoded_Message ) );
+  printf("Payload is %02X  bytes long\n", Payload_Length );
   //Encoded_Message[0] = STX ;
 
 }
@@ -113,6 +121,6 @@ int main()
   int FileToRead = open(SOCKET_PORT, O_RDWR);
   char testmessage[100] = {0};
   strcpy(testmessage, "testvalue");
-  testmessage[3] = (char)0xAB;
-  Encode_Message(testmessage, 9 );
+  testmessage[4] = (char)0xAB;
+  Encode_Message(testmessage, strlen(testmessage) );
 }
