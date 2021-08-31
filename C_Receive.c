@@ -10,6 +10,9 @@
 #define BUFFERSIZE 512
 #define SOCKET_PORT "port-one"
 #define TEXT_FILE "inputfile.txt"
+#define STX (char)0xAA
+#define ETX (char)0xAB
+#define EXE (char)0xAC
 
 /*Takes a char pointer and destination file as input. The function creates a filepointer object, opens
 the destination_file in append mode and stores this into the filepointer. The
@@ -26,6 +29,51 @@ void writeToFile(const char* destination_file, char* textinput)
   }
   fprintf(fileptr, "\n%s", textinput);
   fclose(fileptr);
+}
+
+/*Function used to encode char buffer */
+
+void Encode_Message( char * buffer, int sizeOfBuffer )
+{
+  char Encoded_Message[1000] = {0};
+  char * ptr_Encoded_Message = Encoded_Message;
+
+  while( sizeOfBuffer )
+  {
+
+    if( *buffer == STX)
+    {
+      *ptr_Encoded_Message = EXE;
+      ptr_Encoded_Message++;
+      printf("HERE2");
+    }
+    else if( *buffer == ETX)
+    {
+      printf("\nHERE\n");
+      *ptr_Encoded_Message = EXE;
+      ptr_Encoded_Message++;
+
+
+    }
+    *ptr_Encoded_Message = *buffer;
+    printf("%02X ", *ptr_Encoded_Message);
+
+    buffer++;
+    ptr_Encoded_Message++;
+
+    sizeOfBuffer--;
+
+    fflush( stdout );
+  }
+  //printf("\ntest print: %s ", Encoded_Message);
+  ptr_Encoded_Message++;
+  *ptr_Encoded_Message = ETX;
+  //printf("\ntest print: %s ", Encoded_Message);
+  //printf("%02X ", *Encoded_Message);
+  writeToFile(SOCKET_PORT, Encoded_Message);
+
+  //Encoded_Message[0] = STX ;
+
 }
 
 /*Takes a file descriptor for a socket and reads up to the count of BUFFERSIZE,
@@ -52,7 +100,7 @@ void ListenForMessage(int fileDescriptor, char* buffer)
 
 int main()
 {
-  char CharBuffer[BUFFERSIZE] = { 0 };
+  /*char CharBuffer[BUFFERSIZE] = { 0 };
   int FileToRead = open(SOCKET_PORT, O_RDWR);
   if (FileToRead == -1) {
     printf("Socket-Error %s\n ", strerror(errno));
@@ -61,4 +109,10 @@ int main()
   while (true) {
     ListenForMessage(FileToRead, CharBuffer);
   }
+  */
+  int FileToRead = open(SOCKET_PORT, O_RDWR);
+  char testmessage[100] = {0};
+  strcpy(testmessage, "testvalue");
+  testmessage[3] = (char)0xAB;
+  Encode_Message(testmessage, 9 );
 }
