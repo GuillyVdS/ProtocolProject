@@ -33,16 +33,19 @@ void writeToFile(const char* destination_file, char* textinput)
 
 /*Function used to encode char buffer */
 
-void Encode_Message( char * buffer, int sizeOfBuffer )
+void Encode_Message( char * buffer, int sizeOfBuffer ,char * outsidebuffer , int outsidebufferSize)
 {
+  /*Create char variable to keep track of Payload_Length.*/
   char Payload_Length = (char)sizeOfBuffer;
-  printf(" TEST%c\n",  Payload_Length);
-  char Encoded_Message[1000] = {0};
-  char * ptr_Encoded_Message = Encoded_Message; //creates ptr to Encoded_Message
-  int FileToRead = open(SOCKET_PORT, O_RDWR);
+  /*Create buffer to store encoded character*/
+  //char Encoded_Message[1000] = {0};
+
+  /*creates ptr to Encoded_Message*/
+  char * ptr_Encoded_Message = outsidebuffer;
 
 
-  *ptr_Encoded_Message++ = STX; //sets start byte
+  /*creates start byte and sets a zeroed payload size byte*/
+  *ptr_Encoded_Message++ = STX;
   *ptr_Encoded_Message++ = '0';
 
 
@@ -50,7 +53,10 @@ void Encode_Message( char * buffer, int sizeOfBuffer )
   decremented on each loop.*/
   while( sizeOfBuffer )
   {
-
+    /*This if else statement checks whether the payload contains any of the
+    command bytes. It handles these by inserting an exception byte in front
+    of each offending byte. Each time this occurs the Payload_Length is
+    incremented by one to keep track of the length of the payload.*/
     if( *buffer == STX)
     {
       *ptr_Encoded_Message = EXE;
@@ -59,28 +65,47 @@ void Encode_Message( char * buffer, int sizeOfBuffer )
     }
     else if( *buffer == ETX)
     {
-      printf("\nHERE\n");
       *ptr_Encoded_Message = EXE;
       ptr_Encoded_Message++;
       Payload_Length++;
 
     }
-    *ptr_Encoded_Message = *buffer;
-    printf("%02X ", *ptr_Encoded_Message);
+    else if( *buffer == EXE)
+    {
+      *ptr_Encoded_Message = EXE;
+      ptr_Encoded_Message++;
+      Payload_Length++;
 
+    }
+
+    /*stores value from buffer at ptr for encoded message*/
+    *ptr_Encoded_Message = *buffer;
+    //printf("%02X ", *ptr_Encoded_Message);
+
+    /*Increments buffer and ptr for next iteration. Decrements sizeOfBuffer*/
     buffer++;
     ptr_Encoded_Message++;
-
     sizeOfBuffer--;
+
 
     fflush( stdout );
   }
-  //ptr_Encoded_Message++;
-  *ptr_Encoded_Message = ETX;
 
-  write( FileToRead, Encoded_Message, sizeof( Encoded_Message ) );
-  printf("Payload is %02X  bytes long\n", Payload_Length );
-  //Encoded_Message[0] = STX ;
+  /*Set end byte ETX and adjusts payload byte to correct value*/
+  *ptr_Encoded_Message = ETX;
+  outsidebuffer[1] = Payload_Length;
+  printf("%02X", *outsidebuffer);
+  //memcpy ( outsidebuffer, Encoded_Message, sizeof(Encoded_Message) );
+  //printf("%02X", *Encoded_Message);
+  //write( FileToRead, Encoded_Message, sizeof( Encoded_Message ) );
+  //printf("Payload is %d  bytes long\n", Payload_Length );
+}
+
+
+void Decode_Message()
+{
+
+
 
 }
 
@@ -120,7 +145,12 @@ int main()
   */
   int FileToRead = open(SOCKET_PORT, O_RDWR);
   char testmessage[100] = {0};
-  strcpy(testmessage, "testvalue");
+  char sendBuffer[100] = {0};
+  strcpy( testmessage, "testvalued" );
   testmessage[4] = (char)0xAB;
-  Encode_Message(testmessage, strlen(testmessage) );
+  testmessage[8] = (char)0xAC;
+  testmessage[6] = (char)0xAA;
+  Encode_Message( testmessage, strlen( testmessage ), sendBuffer, 100 );
+  write( FileToRead, sendBuffer, sizeof( sendBuffer ) );
+
 }
