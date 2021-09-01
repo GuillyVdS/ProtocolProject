@@ -39,15 +39,11 @@ void Encode_Message(char* buffer, int sizeOfBuffer, char* outsidebuffer, int out
 {
   /*Create char variable to keep track of Payload_Length.*/
   char Payload_Length = (char)sizeOfBuffer;
-  /*Create buffer to store encoded character*/
-  // char Encoded_Message[1000] = {0};
 
-  /*creates ptr to outsidebuffer*/
   char* ptr_Encoded_Message = outsidebuffer;
 
-  /*creates start byte and sets a zeroed payload size byte*/
-  *ptr_Encoded_Message++ = STX;
-  *ptr_Encoded_Message++ = '0';
+  *ptr_Encoded_Message++ = STX; //creates a start byte
+  ptr_Encoded_Message++; //increments to skip space for future payloadsize byte
 
   /*while loop executes as long as index sizeOfBuffer is above 0. This will be
   decremented on each loop.*/
@@ -65,7 +61,6 @@ void Encode_Message(char* buffer, int sizeOfBuffer, char* outsidebuffer, int out
     /*stores value from buffer at ptr for encoded message*/
     *ptr_Encoded_Message = *buffer;
 
-    /*Increments buffer and ptr for next iteration. Decrements sizeOfBuffer*/
     buffer++;
     ptr_Encoded_Message++;
     sizeOfBuffer--;
@@ -73,7 +68,7 @@ void Encode_Message(char* buffer, int sizeOfBuffer, char* outsidebuffer, int out
     fflush(stdout);
   }
 
-  /*Set end byte ETX and adjusts payload byte to correct value*/
+  /*Set end byte ETX and adjusts payload byte (second byte) to correct value*/
   *ptr_Encoded_Message = ETX;
   outsidebuffer[1] = Payload_Length;
 }
