@@ -10,6 +10,10 @@ SOCKET_PORT = "port-two"
 BAUDRATE = 9600
 SERIAL_READ_TIMEOUT = 5
 
+STX = 0xAA
+ETX = 0xAB
+EXE = 0xAC
+
 
 def check_for_input():
     """Will take user input, checks if input does not exceed 512 characters
@@ -47,8 +51,55 @@ def receive_data_over_serial(serial_port_receive: serial.Serial) -> str:
         pass
     return data_received.decode("ascii")
 
+def create_packet(data_to_pack: list):
+    '''
+    [] //len
+    [] //payload
+    [] //crc
+
+
+    fun() <- add espae byte
+    //iterators
+    [] //sta\rt
+    [] //end
+    '''
+
+    packet = [STX,0]
+    size_of_payload = len(data_to_pack)
+    for byte in data_to_pack:
+        if byte == STX or byte == ETX or byte == EXE:
+            packet.append(EXE)
+            size_of_payload += 1
+        packet.append(byte)
+    packet[1] = size_of_payload
+    packet.append(ETX)
+    print(packet)
+
+    for byte in packet:
+        try:
+            byte = ord(byte)
+        except:
+            print("nostring")
+        print(byte)
+
+    print(packet)
+
+
+
+
+#def unpack_packet():
+
 
 def main():
+
+    test_string = list("testABCtest")
+    test_string[7] = ETX
+    test_string[2] = EXE
+    test_string[8] = STX
+    print(test_string)
+    print(len(test_string))
+    packet = create_packet(test_string)
+
 
     try:
         serial_port_object = serial.Serial(
