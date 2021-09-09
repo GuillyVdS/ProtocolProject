@@ -39,29 +39,35 @@ def send_data_over_serial(serial_port: serial.Serial, data_to_send: bytearray):
     """
     print("sending data: \n")
     serial_port.write(data_to_send)
+    serial_port.flush()
 
 
 def receive_data_over_serial(serial_port_receive: serial.Serial) -> bytearray:
     """This function takes a serial port object, retrieves information from the
-    socket (in the form of bytes) and returns a decoded string.
+    socket (in the form of bytes) and returns a packet in the form of
+    a byte array .
     """
+    ReadByte = True
+    while ReadByte == True:
+        Current_Byte = serial_port_receive.read()
+        print("Current B: " , Current_Byte)
+        if Current_Byte == STX:
+            print("GOT BYTE")
 
-    while (data_received := serial_port_receive.read(512)) == b"":  # fmt: no
-        print("timed out with no bytes")
-        pass
-    #newlist = []
-    #for byte in data_received:
-    #    newlist.append = byte.decode("ascii")
-    #return newlist
-    print("handling: ", data_received)
-    return data_received
-    #return data_received.decode("ascii")
-    #result_in_string = ','.join(str(val) for val in data_received)
-    #return result_in_string
 
+
+
+
+    #data_received = serial_port_receive.read(512)
+    print("RECEIVING:" , data_received)
+    #while ( data_received := serial_port_receive.read(512) ) == b"":  # fmt: no
+        #print("timed out with no bytes")
+        #pass
+
+    return bytearray(data_received)
 
 def insert_exception_bytes(data_to_pack: bytearray):
-    """This function takes a list of bytes of which it will scan for specific
+    """This function byte array of which it will scan for specific
     values. If a value matches any of the values it is looking for, an exception
     byte will be added. This is neccesary for the message not to conflict with
     any packet specific identifiers. """
@@ -69,76 +75,79 @@ def insert_exception_bytes(data_to_pack: bytearray):
     itr = enumerate(data_to_pack)
     for index, item in itr:
         if item == STX or item == ETX or item == EXE:
-            data_to_pack.insert(index, EXE);
+            data_to_pack.insert(index, EXE)
             next(itr)
 
 
 
 def create_packet(data_to_pack: bytearray) -> bytearray:
-    """This function takes a list of bytes to turn into a packet, runs the
+    """This function takes a byte array to turn into a packet, runs the insert
     exception byte function and adds the start- and end bytes as well as a
     payload length.
     """
 
     insert_exception_bytes(data_to_pack)
 
-    data_to_pack.insert(0, STX);
-    payload_size = len(data_to_pack) - 1
-    data_to_pack.insert(1, payload_size);
-    data_to_pack.append(ETX);
+    data_to_pack.insert(0, STX)             #start byte
+
+    payload_size = len(data_to_pack) - 1    #payload size
+    data_to_pack.insert(1, payload_size)
+
+    data_to_pack.append(ETX)
+                #end byte
     return data_to_pack
 
+
+
+
 def unpack_packet(packet_to_unpack: bytearray ) -> bytearray:
-    print("In function: " , packet_to_unpack)
-    decoded_array = bytearray()
-    exception_present = False
-    print("test 121 ", packet_to_unpack)
+    """Takes a byte array for the newly received packet. The first item in the
+    array is deleted twice as to remove both the STX and the payload size.
+    The ETX is stripped by deleting the last item in the array. (using -1)
+    The enumerate cycles through every remaining item in the packet to check for
+    any exception bytes to be removed.
+    """
 
-    #string = str(packet_to_unpack)
-    #print("Found " ,string)
-    for byte in packet_to_unpack:
-        print(byte)
-        if exception_present == True:
-            exception_present = False
-            continue
-        elif byte.decode("ascii") == ETX:
-            break
-        elif byte.decode("ascii") == EXE:
-            exception_present = True
-        else:
-            decoded_array.append(byte)
+    del packet_to_unpack[0]
+    del packet_to_unpack[0]
+    del packet_to_unpack[-1]
 
-    return decoded_array
-
-
-
+    itr = enumerate(packet_to_unpack)
+    for index, item in itr:
+        if item == EXE:
+            del packet_to_unpack[index]
+            if packet_to_unpack[index] == EXE:
+                next(itr)
 
 def main():
 
     try:
         serial_port_object = serial.Serial(
-            port=SOCKET_PORT, baudrate=BAUDRATE, timeout=SERIAL_READ_TIMEOUT
+            port=SOCKET_PORT, baudrate=BAUDRATE, timeout=2
         )
 
         serial_port_object2 = serial.Serial(
             port="port-one", baudrate=BAUDRATE, timeout=SERIAL_READ_TIMEOUT
         )
-        test_string = list("testABCtest")
-        byte_array = bytearray("testABCtest", "ascii")
-        byte_array.insert(5, STX )
-        byte_array.insert(6, ETX)
-        byte_array.insert(7, EXE )
+        test_string = "test0xABCtest"
+        encoded_string = test_string.encode("ascii")
 
+        byte_array = bytearray(encoded_string)
+        #byte_array = bytearray("test0xABCtest", "ascii")
+        #byte_array.insert(5, STX )
+        #byte_array.insert(6, ETX)
+        #byte_array.insert(7, EXE )
 
-        #serial_port_object.write(byte_array)
         print(byte_array)
         packet = create_packet(byte_array)
-        print("test " , packet)
         send_data_over_serial(serial_port_object, packet)
         print("sent")
-        packet_to_unpack =  receive_data_over_serial(serial_port_object2)
+        packet_to_unpack =  receive_data_over_serial(serial_port_object)
         print(packet_to_unpack)
-        print(unpack_packet(packet_to_unpack))
+        unpack_packet(packet_to_unpack)
+        print(packet_to_unpack)
+        print("test 123" ,packet_to_unpack.decode("ascii"))
+
 
         '''
         while True:  # Executes an infinite loop, to repeat below functions

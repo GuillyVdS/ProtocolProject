@@ -45,8 +45,7 @@ void Encode_Message(char* buffer, int sizeOfBuffer, char* outsidebuffer, int out
   *ptr_Encoded_Message++ = STX; //creates a start byte
   ptr_Encoded_Message++; //increments to skip space for future payloadsize byte
 
-  /*while loop executes as long as index sizeOfBuffer is above 0. This will be
-  decremented on each loop.*/
+  /*sizeOfBuffer is used as the index for the while loop to decrement on*/
   while (sizeOfBuffer) {
     /*This if else statement checks whether the payload contains any of the
     command bytes. It handles these by inserting an exception byte in front
@@ -58,7 +57,7 @@ void Encode_Message(char* buffer, int sizeOfBuffer, char* outsidebuffer, int out
       Payload_Length++;
     }
 
-    /*stores value from buffer at ptr for encoded message*/
+    /*stores value from buffer at ptr_Encoded_Message for encoded message*/
     *ptr_Encoded_Message = *buffer;
 
     buffer++;
@@ -105,9 +104,10 @@ Finally the contents of the buffer get written into a text file and
 the memset clears the buffer for the next use of this function.
 */
 
-void ListenForMessage(int fileDescriptor, char* buffer)
+int ListenForMessage(int fileDescriptor, char* buffer)
 {
-  read(fileDescriptor, buffer, BUFFERSIZE);
+  int Message_Size = read(fileDescriptor, buffer, BUFFERSIZE);
+  printf("Message = %d\n", Message_Size );
   buffer[strcspn(buffer, "\n")] = 0;
   printf("Incoming:  %s\n", buffer);
   fflush(stdout);
@@ -117,22 +117,39 @@ void ListenForMessage(int fileDescriptor, char* buffer)
   }
   writeToFile(TEXT_FILE, buffer);
   memset(buffer, 0, BUFFERSIZE);
+
+  return Message_Size;
 }
 
 int main()
 {
-  /*char CharBuffer[BUFFERSIZE] = { 0 };
+  char CharBuffer[BUFFERSIZE] = { 0 };
+  char newbuffer[100] = { 0 };
+  char sendBuffer[100] = { 0 };
+  int CharBufferSize;
   int FileToRead = open(SOCKET_PORT, O_RDWR);
   if (FileToRead == -1) {
     printf("Socket-Error %s\n ", strerror(errno));
     exit(1);
   }
   while (true) {
-    ListenForMessage(FileToRead, CharBuffer);
+    CharBufferSize = ListenForMessage(FileToRead, CharBuffer);
+    printf("SIZE: %d\n", CharBufferSize );
+    Decode_Message(CharBuffer, CharBufferSize, newbuffer, CharBufferSize);
+    printf("%s test",newbuffer);
+    fflush(stdout);
+    newbuffer[3] = 'A';
+    printf("%s bark",newbuffer);
+    fflush(stdout);
+    Encode_Message(newbuffer, strlen(newbuffer), sendBuffer, 100);
+    printf("BUFFER: %s" , sendBuffer);
+    write(FileToRead, "test", 4 );
+    fflush(stdout);
   }
-  */
+
 
   /*temporary code used to test functionality encoding and decoding messages*/
+  /*
   int FileToRead = open(SOCKET_PORT, O_RDWR);
 
   char testmessage[100] = { 0 };
@@ -148,5 +165,5 @@ int main()
   Encode_Message(testmessage, strlen(testmessage), sendBuffer, 100);
   write(FileToRead, sendBuffer, sizeof(sendBuffer));
   Decode_Message(sendBuffer, strlen(sendBuffer), newbuffer, 100);
-  write(FileToRead, newbuffer, sizeof(newbuffer));
+  write(FileToRead, newbuffer, sizeof(newbuffer));*/
 }
