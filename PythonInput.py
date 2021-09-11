@@ -134,9 +134,9 @@ def main():
 
         byte_array = bytearray(encoded_string)
         #byte_array = bytearray("test0xABCtest", "ascii")
-        #byte_array.insert(5, STX )
-        #byte_array.insert(6, ETX)
-        #byte_array.insert(7, EXE )
+        byte_array.insert(5, STX )
+        byte_array.insert(6, ETX)
+        byte_array.insert(7, EXE )
 
         print(byte_array)
         packet = create_packet(byte_array)

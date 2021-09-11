@@ -107,16 +107,13 @@ the memset clears the buffer for the next use of this function.
 int ListenForMessage(int fileDescriptor, char* buffer)
 {
   int Message_Size = read(fileDescriptor, buffer, BUFFERSIZE);
-  printf("Message = %d\n", Message_Size );
-  buffer[strcspn(buffer, "\n")] = 0;
-  printf("Incoming:  %s\n", buffer);
-  fflush(stdout);
-  int testvar = write(fileDescriptor, buffer, strlen(buffer));
+  //buffer[strcspn(buffer, "\n")] = 0;
+  /*int testvar = write(fileDescriptor, buffer, strlen(buffer));
   if (testvar == -1) {
     printf("File-Error %s\n", strerror(errno));
-  }
-  writeToFile(TEXT_FILE, buffer);
-  memset(buffer, 0, BUFFERSIZE);
+  }*/
+  //writeToFile(TEXT_FILE, buffer);
+  //memset(buffer, 0, BUFFERSIZE);
 
   return Message_Size;
 }
@@ -134,16 +131,14 @@ int main()
   }
   while (true) {
     CharBufferSize = ListenForMessage(FileToRead, CharBuffer);
-    printf("SIZE: %d\n", CharBufferSize );
     Decode_Message(CharBuffer, CharBufferSize, newbuffer, CharBufferSize);
     printf("%s test",newbuffer);
     fflush(stdout);
     newbuffer[3] = 'A';
-    printf("%s bark",newbuffer);
     fflush(stdout);
     Encode_Message(newbuffer, strlen(newbuffer), sendBuffer, 100);
     printf("BUFFER: %s" , sendBuffer);
-    write(FileToRead, "test", 4 );
+    write(FileToRead, sendBuffer, CharBufferSize );
     fflush(stdout);
   }
 
